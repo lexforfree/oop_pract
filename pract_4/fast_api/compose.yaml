@@ -1,0 +1,21 @@
+services:
+  api:
+    build: .
+    container_name: variance-demo-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/srv/app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # Отдельный сервис для статической проверки типов - ровно то, что в
+  # реальных проектах обычно запускают в CI перед деплоем. Не поднимает
+  # сервер, просто проверяет и завершается.
+  mypy:
+    build: .
+    container_name: variance-demo-mypy
+    working_dir: /srv/fast_api
+    volumes:
+      - ..:/srv
+    entrypoint: ["mypy", ".", "--config-file", "/srv/mypy.ini"]
+    profiles: ["check"]   # не запускается при обычном `docker compose up`
